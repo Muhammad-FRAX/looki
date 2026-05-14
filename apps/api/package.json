@@ -23,7 +23,8 @@
     "pg": "^8.13.3",
     "node-pg-migrate": "^7.9.1",
     "libphonenumber-js": "^1.11.16",
-    "ulidx": "^2.3.0"
+    "ulidx": "^2.3.0",
+    "ioredis": "^5.3.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

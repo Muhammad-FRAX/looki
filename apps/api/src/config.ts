@@ -14,6 +14,7 @@ const schema = z.object({
   RATE_LIMIT_PER_DAY: z.coerce.number().int().positive().default(1000),
   RATE_LIMIT_PER_MONTH: z.coerce.number().int().positive().default(10000),
   DEMO_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(5),
+  SKIP_AUTH: z.string().optional().transform((v) => v === 'true' || v === '1'),
 });
 
 export type Config = z.infer<typeof schema>;
