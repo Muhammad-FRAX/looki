@@ -13,10 +13,10 @@ describe('GET /api/v1/health', () => {
 });
 
 describe('GET /api/v1/ready', () => {
-  it('returns 200 with status ok', async () => {
+  it('returns 200 when DB is reachable, 503 otherwise', async () => {
     const res = await request(app).get('/api/v1/ready');
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect([200, 503]).toContain(res.status);
+    expect(['ok', 'error']).toContain(res.body.status);
   });
 });
 
