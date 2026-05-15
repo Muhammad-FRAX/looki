@@ -13,6 +13,7 @@ import {
 } from '@ant-design/icons';
 import { useAuth } from '../auth/AuthContext.js';
 import { useSidebar } from '../contexts/SidebarContext.js';
+import { useTheme } from '../contexts/ThemeContext.js';
 import { useResponsive } from '../hooks/index.js';
 import ThemeToggle from '../components/ThemeToggle.js';
 
@@ -62,6 +63,7 @@ function NavMenu({
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { theme } = useTheme();
 
   const items = [
     { key: '/lookup', icon: <SearchOutlined />, label: 'Lookup' },
@@ -84,7 +86,7 @@ function NavMenu({
         onNavigate?.();
       }}
       style={{ flex: 1, border: 'none', background: 'transparent', overflowY: 'auto' }}
-      theme="dark"
+      theme={theme}
     />
   );
 }
