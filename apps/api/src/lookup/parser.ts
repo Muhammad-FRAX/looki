@@ -1,13 +1,12 @@
 import {
   parsePhoneNumber,
   isValidPhoneNumber,
-  getNumberType,
   type CountryCode,
   type PhoneNumber,
 } from 'libphonenumber-js';
 import type { LineType, ParsedNumber } from './types.js';
 
-function mapLineType(raw: ReturnType<typeof getNumberType>): LineType {
+function mapLineType(raw: ReturnType<PhoneNumber['getType']>): LineType {
   switch (raw) {
     case 'MOBILE':                return 'mobile';
     case 'FIXED_LINE':            return 'fixed_line';
@@ -53,7 +52,7 @@ export function parseNumber(input: string, defaultCountry?: string): ParseResult
   const callingCode = phone.countryCallingCode;
   const countryIso2 = phone.country ?? '';
   const nationalNumber = phone.nationalNumber;
-  const lineType = mapLineType(getNumberType(phone));
+  const lineType = mapLineType(phone.getType());
 
   return {
     ok: true,
