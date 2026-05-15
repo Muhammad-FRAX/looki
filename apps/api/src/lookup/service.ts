@@ -6,6 +6,7 @@ import { findCarrier, findCountry } from './carrierRepo.js';
 import { getCachedLookup, setCachedLookup } from './cache.js';
 import { NullPortabilityProvider, type PortabilityProvider } from './portability.js';
 import type { LookupResponse, CarrierInfo, CountryInfo } from './types.js';
+import { cacheHitsTotal, cacheMissesTotal } from '../metrics.js';
 
 const PORTABILITY_NOTE =
   'Real-time portability requires a paid upstream. Returned carrier is the original allocation.';
@@ -60,8 +61,10 @@ export async function lookup(
     try {
       const hit = await getCachedLookup(redis, number.e164);
       if (hit) {
+        cacheHitsTotal.inc();
         return { ok: true, response: { ...hit, cached: true, lookup_id: ulid() } };
       }
+      cacheMissesTotal.inc();
     } catch {
       // Cache failure is non-fatal — fall through to DB
     }
