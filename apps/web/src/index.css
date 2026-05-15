@@ -1,44 +1,131 @@
 @import "tailwindcss";
 
-:root {
-  /* Dark theme (default) */
+/* Dark theme (default) */
+:root,
+html[data-theme="dark"] {
   --bg-base: #202020;
   --bg-container: #2A2A2A;
   --bg-elevated: #383838;
   --bg-hover: #424242;
   --border: #4A4A4A;
+  --border-hover: #5A5A5A;
   --text-primary: #F5F5F5;
   --text-secondary: #CCCCCC;
-  --accent-primary: #FFD633;
+  --text-tertiary: #999999;
+  --accent-primary: #3B82F6;
+  --accent-primary-soft: rgba(59, 130, 246, 0.12);
+  --accent-secondary: #4ADEBD;
   --status-success: #5FE670;
   --status-warning: #FB923C;
   --status-danger: #FF8A8A;
   --status-info: #4DF0FF;
+  --scrollbar-track: #2A2A2A;
+  --scrollbar-thumb: #4A4A4A;
+  --scrollbar-thumb-hover: #5A5A5A;
 }
 
 html[data-theme="light"] {
   --bg-base: #F4F6FA;
   --bg-container: #EEF2F7;
   --bg-elevated: #FFFFFF;
+  --bg-hover: #EFF6FF;
   --border: #CBD5E1;
+  --border-hover: #93C5FD;
   --text-primary: #0A0046;
-  --text-secondary: #64748B;
-  --accent-primary: #FFCB05;
+  --text-secondary: #1C1C1C;
+  --text-tertiary: #64748B;
+  --accent-primary: #2563EB;
+  --accent-primary-soft: rgba(37, 99, 235, 0.08);
+  --accent-secondary: #2FB290;
   --status-success: #42B52E;
   --status-warning: #F97316;
   --status-danger: #DC2626;
   --status-info: #01B4D2;
+  --scrollbar-track: #EEF2F7;
+  --scrollbar-thumb: #CBD5E1;
+  --scrollbar-thumb-hover: #94A3B8;
+}
+
+/* Global resets & base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 * {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5714;
   background-color: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Ant Design overrides */
+.ant-layout {
+  min-height: 100vh;
+  background: var(--bg-base) !important;
+}
+
+.ant-layout-sider {
+  background: var(--bg-container) !important;
+}
+
+.ant-menu-dark {
+  background: transparent !important;
+}
+
+.ant-menu-dark .ant-menu-item-selected {
+  background-color: var(--accent-primary) !important;
+}
+
+.ant-card {
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.kpi-card:hover {
+  border-color: var(--accent-primary) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.15);
+}
+
+.ant-table-wrapper .ant-table {
+  background: transparent;
+}
+
+.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+  background: var(--bg-hover) !important;
+}
+
+.ant-select-dropdown {
+  max-width: calc(100vw - 24px);
+}
+
+.ant-form-item-label > label {
   color: var(--text-primary);
 }
