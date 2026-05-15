@@ -16,6 +16,8 @@ const schema = z.object({
   DEMO_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(5),
   JOB_RESULT_PATH: z.string().default('/tmp/looki-jobs'),
   SKIP_AUTH: z.string().optional().transform((v) => v === 'true' || v === '1'),
+  ADMIN_EMAIL: z.string().optional(),
+  ADMIN_PASSWORD: z.string().optional(),
 });
 
 export type Config = z.infer<typeof schema>;

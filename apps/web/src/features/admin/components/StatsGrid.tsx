@@ -8,7 +8,7 @@ import {
 import type { AdminStats } from '../../../api/types.js';
 
 interface StatsGridProps {
-  data?: AdminStats;
+  data?: AdminStats | undefined;
   loading: boolean;
 }
 

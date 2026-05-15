@@ -50,6 +50,7 @@ RUN npm ci --workspace=@looki/api --workspace=@looki/shared --include-workspace-
 
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+COPY apps/api/src/db/migrations ./apps/api/dist/db/migrations
 
 RUN chown -R looki:looki /app
 USER looki

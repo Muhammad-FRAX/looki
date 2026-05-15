@@ -5,8 +5,8 @@ import { DataTable } from '../../../components/ui/index.js';
 import type { AdminUser } from '../../../api/types.js';
 
 interface UsersTableProps {
-  data?: AdminUser[];
-  total?: number;
+  data?: AdminUser[] | undefined;
+  total?: number | undefined;
   loading: boolean;
   page: number;
   pageSize: number;

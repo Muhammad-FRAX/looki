@@ -1,7 +1,7 @@
 import { Table } from 'antd';
 import type { TableProps } from 'antd';
 
-type DataTableProps<T> = TableProps<T> & {
+type DataTableProps<T> = Omit<TableProps<T>, 'title'> & {
   title?: string;
 };
 

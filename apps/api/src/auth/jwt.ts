@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { type SignOptions } from 'jsonwebtoken';
 import { ulid } from 'ulidx';
 import type { Request, Response, NextFunction } from 'express';
 import { config } from '../config.js';
@@ -17,8 +17,8 @@ export interface RefreshTokenPayload {
 export function signAccessToken(userId: string, role: string): string {
   const payload: AccessTokenPayload = { sub: userId, role, jti: ulid() };
   return jwt.sign(payload, config.JWT_ACCESS_SECRET, {
-    expiresIn: config.JWT_ACCESS_EXPIRES_IN as string,
-  });
+    expiresIn: config.JWT_ACCESS_EXPIRES_IN,
+  } as SignOptions);
 }
 
 export function signRefreshToken(
@@ -27,8 +27,8 @@ export function signRefreshToken(
   const jti = ulid();
   const payload: RefreshTokenPayload = { sub: userId, jti };
   const token = jwt.sign(payload, config.JWT_REFRESH_SECRET, {
-    expiresIn: config.JWT_REFRESH_EXPIRES_IN as string,
-  });
+    expiresIn: config.JWT_REFRESH_EXPIRES_IN,
+  } as SignOptions);
   const decoded = jwt.decode(token) as { exp: number };
   const expiresAt = new Date(decoded['exp'] * 1000);
   return { token, jti, expiresAt };

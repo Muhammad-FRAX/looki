@@ -6,7 +6,7 @@ import { DataTable } from '../../../components/ui/index.js';
 import type { ApiKey } from '../../../api/types.js';
 
 interface ApiKeyListProps {
-  data?: ApiKey[];
+  data?: ApiKey[] | undefined;
   loading: boolean;
   onRevoke: (id: string) => void;
 }

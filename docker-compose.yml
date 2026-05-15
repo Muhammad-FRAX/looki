@@ -5,8 +5,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-looki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-looki}
       POSTGRES_DB: ${POSTGRES_DB:-looki}
-    ports:
-      - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -18,8 +16,6 @@ services:
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
-    ports:
-      - "6380:6379"
     volumes:
       - redisdata:/data
     healthcheck:
@@ -68,7 +64,7 @@ services:
       JOB_RESULT_PATH: /data/jobs
     volumes:
       - jobsdata:/data/jobs
-    command: ["node", "dist/jobs/worker.js"]
+    command: ["node", "apps/api/dist/jobs/worker.js"]
     depends_on:
       - api
     restart: unless-stopped

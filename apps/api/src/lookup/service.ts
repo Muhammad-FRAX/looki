@@ -1,5 +1,5 @@
 import type { Pool } from 'pg';
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 import { ulid } from 'ulidx';
 import { parseNumber } from './parser.js';
 import { findCarrier, findCountry } from './carrierRepo.js';
@@ -13,13 +13,13 @@ const PORTABILITY_NOTE =
 
 export interface LookupOptions {
   pool: Pool;
-  portability?: PortabilityProvider;
-  redis?: Redis;
+  portability?: PortabilityProvider | undefined;
+  redis?: Redis | undefined;
 }
 
 export interface LookupInput {
   number: string;
-  defaultCountry?: string;
+  defaultCountry?: string | undefined;
 }
 
 export type LookupResult =

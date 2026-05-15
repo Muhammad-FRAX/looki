@@ -103,10 +103,11 @@ router.post('/lookup/bulk', requireApiKey, bulkRateLimiter, async (req, res) => 
 
   const { numbers, country } = parsed.data;
   const startTime = Date.now();
+  const db = pool;
 
   const results = await Promise.all(
     numbers.map((number) =>
-      lookup({ number, defaultCountry: country }, { pool, redis: redisClient ?? undefined }),
+      lookup({ number, defaultCountry: country }, { pool: db, redis: redisClient ?? undefined }),
     ),
   );
 

@@ -88,14 +88,14 @@ The web UI is available at `http://localhost:80`. The REST API is at `http://loc
 
 ### Component Responsibilities
 
-| Component | Role |
-|---|---|
-| `apps/api` | Express REST API, JWT auth, lookup orchestration, job queue |
-| `apps/web` | React 18 SPA — lookup UI, dashboard, admin, key management |
-| `apps/data-loader` | One-shot CLI to ingest NANPA / Ofcom / ACMA prefix data |
-| `packages/shared` | TypeScript types shared between api and web |
-| `postgres` | Primary data store — prefix allocations, users, usage logs |
-| `redis` | Cache (lookup results, 24h TTL), sliding-window rate limiting, BullMQ |
+| Component          | Role                                                                  |
+| ------------------ | --------------------------------------------------------------------- |
+| `apps/api`         | Express REST API, JWT auth, lookup orchestration, job queue           |
+| `apps/web`         | React 18 SPA — lookup UI, dashboard, admin, key management            |
+| `apps/data-loader` | One-shot CLI to ingest NANPA / Ofcom / ACMA prefix data               |
+| `packages/shared`  | TypeScript types shared between api and web                           |
+| `postgres`         | Primary data store — prefix allocations, users, usage logs            |
+| `redis`            | Cache (lookup results, 24h TTL), sliding-window rate limiting, BullMQ |
 
 See [`docs/architecture.md`](docs/architecture.md) for a deep-dive on the lookup pipeline and LPM query design.
 
@@ -305,11 +305,11 @@ The web UI stores both tokens in `localStorage` under `looki_access_token` and `
 
 All limits are per API key, enforced in Redis with sliding-window (per-minute) and fixed-window (per-day, per-month) counters.
 
-| Window | Free tier |
-|---|---|
-| Per minute | 60 requests |
-| Per day | 1,000 requests |
-| Per month | 10,000 requests |
+| Window     | Free tier       |
+| ---------- | --------------- |
+| Per minute | 60 requests     |
+| Per day    | 1,000 requests  |
+| Per month  | 10,000 requests |
 
 - **Bulk requests** count as `numbers.length` units against all windows.
 - **Jobs** count as 1 per-minute at submission; full `numbers.length` is charged per-day/per-month on completion.
@@ -319,6 +319,7 @@ All limits are per API key, enforced in Redis with sliding-window (per-minute) a
 Rate-limited responses return HTTP 429 with a `Retry-After` header and `{ "error": { "code": "RATE_LIMITED" } }`.
 
 Every successful response includes:
+
 ```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 59
@@ -333,11 +334,11 @@ Redis is optional. When unavailable, rate limiting falls back gracefully (reques
 
 Looki uses open, freely-licensed carrier allocation data:
 
-| Source | Country | License |
-|---|---|---|
-| NANPA | +1 (US/CA) | Public domain |
-| Ofcom | +44 (UK) | Open Government Licence v3.0 |
-| ACMA (stub) | +61 (AU) | Creative Commons Attribution |
+| Source      | Country    | License                      |
+| ----------- | ---------- | ---------------------------- |
+| NANPA       | +1 (US/CA) | Public domain                |
+| Ofcom       | +44 (UK)   | Open Government Licence v3.0 |
+| ACMA (stub) | +61 (AU)   | Creative Commons Attribution |
 
 See [`docs/data-sources.md`](docs/data-sources.md) for download instructions and CSV format details.
 
@@ -430,6 +431,7 @@ docker compose run --profile loader data-loader
 ```
 
 Services:
+
 - `postgres` — PostgreSQL 16 with persistent volume
 - `redis` — Redis 7 with AOF persistence
 - `api` — Node.js API on port 3000
@@ -479,27 +481,27 @@ Grafana is available at `http://localhost:3001` (default: admin/admin). The dash
 
 All configuration is via environment variables. Copy `.env.example` to `.env` and edit.
 
-| Variable | Default | Description |
-|---|---|---|
-| `DATABASE_URL` | (required) | PostgreSQL connection string |
-| `REDIS_URL` | (optional) | Redis connection string — omit to disable caching/rate limiting |
-| `JWT_ACCESS_SECRET` | `change-me-access` | **Change in production** — HS256 secret for access tokens |
-| `JWT_REFRESH_SECRET` | `change-me-refresh` | **Change in production** — HS256 secret for refresh tokens |
-| `JWT_ACCESS_EXPIRES_IN` | `15m` | Access token lifetime |
-| `JWT_REFRESH_EXPIRES_IN` | `7d` | Refresh token lifetime |
-| `PORT` | `3000` | API listen port |
-| `NODE_ENV` | `production` | `development` enables pretty logs and disables some security headers |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost` | Comma-separated list of allowed origins |
-| `ADMIN_EMAIL` | `admin@looki.local` | Email for the seeded admin account |
-| `ADMIN_PASSWORD` | `change-me` | **Change in production** |
-| `RATE_LIMIT_PER_MINUTE` | `60` | Free tier: requests per minute per API key |
-| `RATE_LIMIT_PER_DAY` | `1000` | Free tier: requests per day per API key |
-| `RATE_LIMIT_PER_MONTH` | `10000` | Free tier: requests per month per API key |
-| `DEMO_RATE_LIMIT_PER_HOUR` | `5` | Anonymous demo lookups per hour per IP |
-| `NANPA_DATA_URL` | _(empty)_ | URL or `file://` path to NANPA NXX assignment CSV |
-| `OFCOM_DATA_URL` | _(empty)_ | URL or `file://` path to Ofcom allocated number ranges CSV |
-| `JOB_RESULT_PATH` | `/data/jobs` | Directory for async job CSV result files |
-| `SKIP_AUTH` | `false` | Bypass API key auth — **never enable in production** |
+| Variable                   | Default             | Description                                                          |
+| -------------------------- | ------------------- | -------------------------------------------------------------------- |
+| `DATABASE_URL`             | (required)          | PostgreSQL connection string                                         |
+| `REDIS_URL`                | (optional)          | Redis connection string — omit to disable caching/rate limiting      |
+| `JWT_ACCESS_SECRET`        | `change-me-access`  | **Change in production** — HS256 secret for access tokens            |
+| `JWT_REFRESH_SECRET`       | `change-me-refresh` | **Change in production** — HS256 secret for refresh tokens           |
+| `JWT_ACCESS_EXPIRES_IN`    | `15m`               | Access token lifetime                                                |
+| `JWT_REFRESH_EXPIRES_IN`   | `7d`                | Refresh token lifetime                                               |
+| `PORT`                     | `3000`              | API listen port                                                      |
+| `NODE_ENV`                 | `production`        | `development` enables pretty logs and disables some security headers |
+| `CORS_ALLOWED_ORIGINS`     | `http://localhost`  | Comma-separated list of allowed origins                              |
+| `ADMIN_EMAIL`              | `admin@looki.local` | Email for the seeded admin account                                   |
+| `ADMIN_PASSWORD`           | `change-me`         | **Change in production**                                             |
+| `RATE_LIMIT_PER_MINUTE`    | `60`                | Free tier: requests per minute per API key                           |
+| `RATE_LIMIT_PER_DAY`       | `1000`              | Free tier: requests per day per API key                              |
+| `RATE_LIMIT_PER_MONTH`     | `10000`             | Free tier: requests per month per API key                            |
+| `DEMO_RATE_LIMIT_PER_HOUR` | `5`                 | Anonymous demo lookups per hour per IP                               |
+| `NANPA_DATA_URL`           | _(empty)_           | URL or `file://` path to NANPA NXX assignment CSV                    |
+| `OFCOM_DATA_URL`           | _(empty)_           | URL or `file://` path to Ofcom allocated number ranges CSV           |
+| `JOB_RESULT_PATH`          | `/data/jobs`        | Directory for async job CSV result files                             |
+| `SKIP_AUTH`                | `false`             | Bypass API key auth — **never enable in production**                 |
 
 ---
 
@@ -514,6 +516,8 @@ All configuration is via environment variables. Copy `.env.example` to `.env` an
   - `pg_pool_total` / `pg_pool_idle` / `pg_pool_waiting`
 
 ---
+
+**Made By: Mohamed Ali - Frax**
 
 ## License
 

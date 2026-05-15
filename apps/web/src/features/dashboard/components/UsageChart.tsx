@@ -7,7 +7,7 @@ import { useTheme } from '../../../contexts/ThemeContext.js';
 import { echartsColorsDark, echartsColorsLight } from '../../../theme/tokens.js';
 
 interface UsageChartProps {
-  data?: UsageEntry[];
+  data?: UsageEntry[] | undefined;
   loading: boolean;
 }
 

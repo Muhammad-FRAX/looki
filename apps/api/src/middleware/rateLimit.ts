@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 import { ulid } from 'ulidx';
 import { redisClient } from '../redis/client.js';
 import { config } from '../config.js';

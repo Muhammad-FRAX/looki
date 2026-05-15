@@ -4,6 +4,7 @@ import { createApp } from './server.js';
 import { config } from './config.js';
 import { pool } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
+import { seedAdminIfMissing } from './db/seed.js';
 import { redisClient } from './redis/client.js';
 import { startWorker } from './jobs/worker.js';
 import pino from 'pino';
@@ -19,6 +20,21 @@ async function start() {
     } catch (err) {
       logger.error({ err }, 'Migration failed — aborting startup');
       process.exit(1);
+    }
+
+    if (pool) {
+      try {
+        const result = await seedAdminIfMissing(pool);
+        if (result === 'created') {
+          logger.info({ email: config.ADMIN_EMAIL }, 'Seeded admin user');
+        } else if (result === 'exists') {
+          logger.info({ email: config.ADMIN_EMAIL }, 'Admin user already present — skipped seed');
+        } else {
+          logger.info('ADMIN_EMAIL / ADMIN_PASSWORD not set — skipped admin seed');
+        }
+      } catch (err) {
+        logger.error({ err }, 'Admin seed failed (continuing startup)');
+      }
     }
   } else {
     logger.warn('DATABASE_URL not set — skipping migrations');

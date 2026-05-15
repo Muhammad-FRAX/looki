@@ -1,4 +1,4 @@
-import type Redis from 'ioredis';
+import type { Redis } from 'ioredis';
 import type { LookupResponse } from './types.js';
 
 const KEY_PREFIX = 'lookup:v1:';
