@@ -1,44 +1,106 @@
 @import "tailwindcss";
 
-:root {
-  /* Dark theme (default) */
+/* ── Dark theme (default) ─────────────────────────────────────── */
+:root,
+html[data-theme="dark"] {
   --bg-base: #202020;
   --bg-container: #2A2A2A;
   --bg-elevated: #383838;
   --bg-hover: #424242;
   --border: #4A4A4A;
+  --border-hover: #5A5A5A;
   --text-primary: #F5F5F5;
   --text-secondary: #CCCCCC;
-  --accent-primary: #FFD633;
+  --text-tertiary: #999999;
+  --accent-primary: #4096FF;
+  --accent-primary-soft: #0C1A2E;
   --status-success: #5FE670;
   --status-warning: #FB923C;
   --status-danger: #FF8A8A;
   --status-info: #4DF0FF;
+  --scrollbar-track: #2A2A2A;
+  --scrollbar-thumb: #4A4A4A;
+  --scrollbar-thumb-hover: #5A5A5A;
 }
 
+/* ── Light theme ──────────────────────────────────────────────── */
 html[data-theme="light"] {
   --bg-base: #F4F6FA;
   --bg-container: #EEF2F7;
   --bg-elevated: #FFFFFF;
+  --bg-hover: #EDF2FF;
   --border: #CBD5E1;
+  --border-hover: #93C5FD;
   --text-primary: #0A0046;
-  --text-secondary: #64748B;
-  --accent-primary: #FFCB05;
+  --text-secondary: #1C1C1C;
+  --text-tertiary: #64748B;
+  --accent-primary: #1677FF;
+  --accent-primary-soft: #EFF6FF;
   --status-success: #42B52E;
   --status-warning: #F97316;
   --status-danger: #DC2626;
   --status-info: #01B4D2;
+  --scrollbar-track: #EEF2F7;
+  --scrollbar-thumb: #CBD5E1;
+  --scrollbar-thumb-hover: #93C5FD;
 }
 
+/* ── Base ─────────────────────────────────────────────────────── */
 * {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
   font-size: 14px;
   line-height: 1.5714;
   background-color: var(--bg-base);
   color: var(--text-primary);
+}
+
+/* ── Scrollbar ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
+
+/* ── Ant Design global overrides ──────────────────────────────── */
+.ant-layout { min-height: 100vh; background: var(--bg-base) !important; }
+.ant-layout-sider { background: var(--bg-container) !important; }
+.ant-menu-dark { background: transparent !important; }
+.ant-layout-header { background: var(--bg-container) !important; }
+
+.ant-card {
+  border: 1px solid var(--border) !important;
+  background: var(--bg-elevated) !important;
+  transition: border-color 0.2s ease !important;
+}
+.ant-card:hover { border-color: var(--accent-primary) !important; }
+
+.ant-table-wrapper .ant-table { background: var(--bg-elevated) !important; }
+.ant-table-wrapper .ant-table-tbody > tr:hover > td {
+  background: var(--bg-hover) !important;
+}
+
+.ant-select-dropdown { max-width: calc(100vw - 24px); }
+
+/* ── KPI card ─────────────────────────────────────────────────── */
+.kpi-card {
+  cursor: default;
+  transition: all 0.2s ease !important;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(64, 150, 255, 0.15) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+/* ── Interactive transitions ──────────────────────────────────── */
+.ant-btn,
+.ant-input,
+.ant-select-selector,
+.ant-menu-item {
+  transition: all 0.2s ease !important;
 }
