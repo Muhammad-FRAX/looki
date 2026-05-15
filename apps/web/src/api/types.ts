@@ -52,9 +52,11 @@ export interface AdminStats {
   total_lookups: number;
   cache_hit_ratio: number;
   queue_depth: number;
-  p50_latency_ms: number;
-  p95_latency_ms: number;
-  p99_latency_ms: number;
+  latency_24h: {
+    p50: number | null;
+    p95: number | null;
+    p99: number | null;
+  };
 }
 
 export interface AdminUser {
