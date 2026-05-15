@@ -30,6 +30,18 @@ router.get('/openapi.json', (_req, res) => {
 // Swagger UI served via CDN — no extra npm package needed
 router.get('/docs', (_req, res) => {
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      "script-src 'self' https://unpkg.com 'unsafe-inline'",
+      "style-src 'self' https://unpkg.com 'unsafe-inline'",
+      "img-src 'self' data: https://unpkg.com",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      "worker-src 'self' blob:",
+    ].join('; '),
+  );
   res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
