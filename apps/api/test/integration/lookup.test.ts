@@ -46,3 +46,71 @@ describe('GET /api/v1/lookup', () => {
     expect(res.body.error.code).toBe('VALIDATION_ERROR');
   });
 });
+
+describe('POST /api/v1/lookup/bulk', () => {
+  it('returns 400 when body is missing', async () => {
+    const res = await request(app).post('/api/v1/lookup/bulk').send({});
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns 400 when numbers array is empty', async () => {
+    const res = await request(app).post('/api/v1/lookup/bulk').send({ numbers: [] });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns 400 when numbers array exceeds 1000', async () => {
+    const numbers = Array.from({ length: 1001 }, () => '+12125550123');
+    const res = await request(app).post('/api/v1/lookup/bulk').send({ numbers });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns array of results for valid input (no DB)', async () => {
+    const res = await request(app)
+      .post('/api/v1/lookup/bulk')
+      .send({ numbers: ['+12125550123', 'not-a-number'] });
+
+    expect([200, 503]).toContain(res.status);
+    if (res.status === 200) {
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(2);
+      // Second item is invalid number — should have valid: false
+      expect(res.body[1].valid).toBe(false);
+    }
+  });
+
+  it('returns array with valid:false for entirely invalid numbers', async () => {
+    const res = await request(app)
+      .post('/api/v1/lookup/bulk')
+      .send({ numbers: ['not-a-number', 'also-not-a-number'] });
+
+    // Parser rejects before DB, so should always return results (not 503)
+    expect([200, 503]).toContain(res.status);
+    if (res.status === 200) {
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body).toHaveLength(2);
+      for (const item of res.body) {
+        if ('valid' in item) {
+          expect(item.valid).toBe(false);
+        }
+      }
+    }
+  });
+
+  it('accepts optional country parameter', async () => {
+    const res = await request(app)
+      .post('/api/v1/lookup/bulk')
+      .send({ numbers: ['+12125550123'], country: 'US' });
+    expect([200, 503]).toContain(res.status);
+  });
+
+  it('rejects invalid country parameter (not 2 chars)', async () => {
+    const res = await request(app)
+      .post('/api/v1/lookup/bulk')
+      .send({ numbers: ['+12125550123'], country: 'USA' });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+  });
+});

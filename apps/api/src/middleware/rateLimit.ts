@@ -35,6 +35,40 @@ end
 return count
 `;
 
+// Lua: bulk sliding window — adds 'count' slots at once. Returns [allowed, remaining, retry_after_sec]
+const BULK_SLIDING_WINDOW_LUA = `
+local key = KEYS[1]
+local now_ms = tonumber(ARGV[1])
+local window_ms = tonumber(ARGV[2])
+local limit = tonumber(ARGV[3])
+local count = tonumber(ARGV[4])
+local prefix = ARGV[5]
+redis.call('ZREMRANGEBYSCORE', key, '-inf', now_ms - window_ms)
+local current = tonumber(redis.call('ZCARD', key))
+if current + count > limit then
+  local oldest = redis.call('ZRANGE', key, 0, 0, 'WITHSCORES')
+  local retry = 60
+  if #oldest >= 2 then
+    retry = math.ceil((tonumber(oldest[2]) + window_ms - now_ms) / 1000)
+  end
+  return {0, math.max(0, limit - current), retry}
+end
+for i = 1, count do
+  redis.call('ZADD', key, now_ms, prefix .. ':' .. i)
+end
+redis.call('PEXPIRE', key, window_ms + 5000)
+return {1, limit - current - count, 0}
+`;
+
+// Lua: atomic INCRBY + EXPIRE on first use. Returns new count.
+const BULK_INCR_EXPIRE_LUA = `
+local count = tonumber(redis.call('INCRBY', KEYS[1], ARGV[2]))
+if count <= tonumber(ARGV[2]) then
+  redis.call('EXPIRE', KEYS[1], tonumber(ARGV[1]))
+end
+return count
+`;
+
 async function slidingWindow(
   redis: Redis,
   key: string,
@@ -155,6 +189,135 @@ export function createApiKeyRateLimiter() {
       next();
     } catch {
       // Redis failure is non-fatal — pass the request through
+      next();
+    }
+  };
+}
+
+async function bulkSlidingWindow(
+  redis: Redis,
+  key: string,
+  windowMs: number,
+  limit: number,
+  count: number,
+): Promise<{ allowed: boolean; remaining: number; retryAfter: number }> {
+  const callId = Math.random().toString(36).slice(2, 10);
+  const result = (await redis.eval(
+    BULK_SLIDING_WINDOW_LUA,
+    1,
+    key,
+    Date.now().toString(),
+    windowMs.toString(),
+    limit.toString(),
+    count.toString(),
+    callId,
+  )) as [number, number, number];
+
+  return {
+    allowed: result[0] === 1,
+    remaining: result[1],
+    retryAfter: result[2],
+  };
+}
+
+async function bulkFixedWindow(
+  redis: Redis,
+  key: string,
+  limit: number,
+  ttlSeconds: number,
+  count: number,
+): Promise<{ allowed: boolean; remaining: number }> {
+  const total = (await redis.eval(
+    BULK_INCR_EXPIRE_LUA,
+    1,
+    key,
+    ttlSeconds.toString(),
+    count.toString(),
+  )) as number;
+
+  return {
+    allowed: total <= limit,
+    remaining: Math.max(0, limit - total),
+  };
+}
+
+/**
+ * Rate limiter for bulk endpoints: charges `getCount(req)` units against all windows.
+ * Per the plan: bulk counts as numbers.length against per-minute, per-day, and per-month.
+ */
+export function createBulkApiKeyRateLimiter(getCount: (req: Request) => number) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (!req.apiKey || !redisClient) {
+      next();
+      return;
+    }
+
+    const keyId = req.apiKey.id;
+    const count = Math.max(1, getCount(req));
+
+    try {
+      const minResult = await bulkSlidingWindow(
+        redisClient,
+        `rl:min:${keyId}`,
+        60_000,
+        config.RATE_LIMIT_PER_MINUTE,
+        count,
+      );
+
+      if (!minResult.allowed) {
+        res
+          .status(429)
+          .set('Retry-After', String(minResult.retryAfter))
+          .set('X-RateLimit-Limit', String(config.RATE_LIMIT_PER_MINUTE))
+          .set('X-RateLimit-Remaining', '0')
+          .set('X-RateLimit-Reset', String(Math.floor(Date.now() / 1000) + minResult.retryAfter))
+          .json({ error: { code: 'RATE_LIMITED', message: 'Per-minute rate limit exceeded' } });
+        return;
+      }
+
+      const dayResult = await bulkFixedWindow(
+        redisClient,
+        `rl:day:${keyId}:${dateKey()}`,
+        config.RATE_LIMIT_PER_DAY,
+        25 * 3600,
+        count,
+      );
+
+      if (!dayResult.allowed) {
+        res
+          .status(429)
+          .set('Retry-After', '86400')
+          .set('X-RateLimit-Limit', String(config.RATE_LIMIT_PER_DAY))
+          .set('X-RateLimit-Remaining', '0')
+          .set('X-RateLimit-Reset', String(Math.floor(Date.now() / 1000) + 86400))
+          .json({ error: { code: 'RATE_LIMITED', message: 'Daily rate limit exceeded' } });
+        return;
+      }
+
+      const monthResult = await bulkFixedWindow(
+        redisClient,
+        `rl:month:${keyId}:${monthKey()}`,
+        config.RATE_LIMIT_PER_MONTH,
+        33 * 24 * 3600,
+        count,
+      );
+
+      if (!monthResult.allowed) {
+        res
+          .status(429)
+          .set('Retry-After', '2592000')
+          .set('X-RateLimit-Limit', String(config.RATE_LIMIT_PER_MONTH))
+          .set('X-RateLimit-Remaining', '0')
+          .set('X-RateLimit-Reset', String(Math.floor(Date.now() / 1000) + 2592000))
+          .json({ error: { code: 'RATE_LIMITED', message: 'Monthly rate limit exceeded' } });
+        return;
+      }
+
+      res.set('X-RateLimit-Limit', String(config.RATE_LIMIT_PER_MINUTE));
+      res.set('X-RateLimit-Remaining', String(minResult.remaining));
+      res.set('X-RateLimit-Reset', String(Math.floor(Date.now() / 1000) + 60));
+      next();
+    } catch {
       next();
     }
   };
