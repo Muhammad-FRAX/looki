@@ -8,5 +8,13 @@ export default defineConfig({
     env: {
       SKIP_AUTH: 'true',
     },
+    coverage: {
+      provider: 'v8',
+      include: ['src/lookup/**', 'src/auth/**'],
+      thresholds: {
+        lines: 80,
+      },
+      reporter: ['text', 'lcov'],
+    },
   },
 });
