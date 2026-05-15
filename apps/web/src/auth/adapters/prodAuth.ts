@@ -42,10 +42,10 @@ export const prodAuth: AuthAdapter = {
     const token = localStorage.getItem(ACCESS_KEY);
     if (!token) return null;
     try {
-      const { data } = await axios.get<User>('/api/v1/me', {
+      const { data } = await axios.get<{ user: User }>('/api/v1/me', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return data;
+      return data.user;
     } catch {
       return null;
     }
