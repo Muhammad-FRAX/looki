@@ -32,6 +32,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3000"
+      JOB_RESULT_PATH: /data/jobs
+    volumes:
+      - jobsdata:/data/jobs
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,6 +61,9 @@ services:
     env_file: .env
     environment:
       NODE_ENV: production
+      JOB_RESULT_PATH: /data/jobs
+    volumes:
+      - jobsdata:/data/jobs
     command: ["node", "dist/jobs/worker.js"]
     depends_on:
       - api
@@ -79,3 +85,4 @@ services:
 volumes:
   pgdata: {}
   redisdata: {}
+  jobsdata: {}

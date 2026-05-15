@@ -14,6 +14,7 @@ const schema = z.object({
   RATE_LIMIT_PER_DAY: z.coerce.number().int().positive().default(1000),
   RATE_LIMIT_PER_MONTH: z.coerce.number().int().positive().default(10000),
   DEMO_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(5),
+  JOB_RESULT_PATH: z.string().default('/tmp/looki-jobs'),
   SKIP_AUTH: z.string().optional().transform((v) => v === 'true' || v === '1'),
 });
 

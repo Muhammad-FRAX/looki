@@ -5,6 +5,7 @@ import { config } from './config.js';
 import { pool } from './db/pool.js';
 import { runMigrations } from './db/migrate.js';
 import { redisClient } from './redis/client.js';
+import { startWorker } from './jobs/worker.js';
 import pino from 'pino';
 
 const logger = pino({ level: config.NODE_ENV === 'test' ? 'silent' : 'info' });
@@ -24,6 +25,9 @@ async function start() {
   }
 
   const app = createApp();
+
+  // Start built-in BullMQ worker (scales out via dedicated worker container in production)
+  startWorker();
 
   const server = app.listen(config.PORT, () => {
     logger.info(`[looki-api] listening on port ${config.PORT} (${config.NODE_ENV})`);
