@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { Card, Tabs, Alert } from 'antd';
 import { SearchOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { PageHeader } from '../../components/ui/index.js';
-import { LookupForm, ResultCard, BulkTab } from './components/index.js';
+import { LookupForm, ResultCard, BulkTab, ApiKeyGate } from './components/index.js';
 import { useLookup } from './hooks/useLookup.js';
+import { getStoredApiKey } from '../../api/lookupClient.js';
 
 export default function LookupPage() {
   const { mutate, data: result, isPending, error, reset } = useLookup();
+  const [hasKey, setHasKey] = useState<boolean>(getStoredApiKey() !== null);
 
   const errMessage =
     error !== null
@@ -19,6 +22,8 @@ export default function LookupPage() {
         title="Phone Lookup"
         subtitle="Look up a phone number or submit a bulk job"
       />
+
+      <ApiKeyGate onChange={(k) => setHasKey(k !== null)} />
 
       <Card
         style={{
@@ -45,6 +50,7 @@ export default function LookupPage() {
                   <LookupForm
                     onLookup={(n) => mutate(n)}
                     loading={isPending}
+                    disabled={!hasKey}
                   />
                   {errMessage && (
                     <Alert

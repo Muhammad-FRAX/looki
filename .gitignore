@@ -1,0 +1,114 @@
+# -------------------------
+# OS & System Files
+# -------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+desktop.ini
+
+# -------------------------
+# Node.js / JavaScript
+# -------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+.pnpm-store/
+
+# -------------------------
+# Python
+# -------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+*.manifest
+*.spec
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# -------------------------
+# Build / Dist
+# -------------------------
+dist/
+build/
+out/
+*.log
+*.tmp
+*.swp
+*.swo
+
+# -------------------------
+# VS Code
+# -------------------------
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# -------------------------
+# Claude / AI Assistants
+# -------------------------
+.claude/
+.claude-cache/
+.claude-history.json
+.claude-config.json
+
+# -------------------------
+# JetBrains IDEs
+# -------------------------
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# -------------------------
+# Environment & Secrets
+# -------------------------
+.env
+.env.*
+*.key
+*.pem
+*.crt
+*.cert
+*.secret
+
+# -------------------------
+# Databases
+# -------------------------
+*.sqlite
+*.sqlite3
+*.db
+*.mdb
+*.sql
+
+# -------------------------
+# Docker
+# -------------------------
+.docker/
+docker-compose.override.yml
+.dockerignore
+
+# -------------------------
+# Misc
+# -------------------------
+coverage/
+*.cover
+*.lcov
+.cache/
+.tmp/
+logs/
+*.pid
+*.seed
+*.bak
+*.old

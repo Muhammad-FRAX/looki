@@ -5,12 +5,14 @@ import { SearchOutlined, PhoneOutlined } from '@ant-design/icons';
 interface LookupFormProps {
   onLookup: (number: string) => void;
   loading: boolean;
+  disabled?: boolean;
 }
 
-export default function LookupForm({ onLookup, loading }: LookupFormProps) {
+export default function LookupForm({ onLookup, loading, disabled = false }: LookupFormProps) {
   const [number, setNumber] = useState('');
 
   function handleSubmit() {
+    if (disabled) return;
     const trimmed = number.trim();
     if (!trimmed) return;
     onLookup(trimmed);
@@ -25,7 +27,7 @@ export default function LookupForm({ onLookup, loading }: LookupFormProps) {
         value={number}
         onChange={(e) => setNumber(e.target.value)}
         onPressEnter={handleSubmit}
-        disabled={loading}
+        disabled={loading || disabled}
         style={{ borderRadius: '8px 0 0 8px' }}
       />
       <Button
@@ -34,7 +36,7 @@ export default function LookupForm({ onLookup, loading }: LookupFormProps) {
         icon={<SearchOutlined />}
         onClick={handleSubmit}
         loading={loading}
-        disabled={!number.trim()}
+        disabled={!number.trim() || disabled}
         style={{
           background: 'var(--accent-primary)',
           borderColor: 'var(--accent-primary)',
