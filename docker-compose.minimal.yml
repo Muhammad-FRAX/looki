@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: looki-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-looki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-looki}
@@ -17,6 +18,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    image: looki-api:v1
+    container_name: looki-api
     env_file: .env
     environment:
       NODE_ENV: development
@@ -30,4 +33,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  pgdata: {}
+  pgdata:
+    name: looki-postgres-data

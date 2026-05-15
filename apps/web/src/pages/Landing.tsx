@@ -256,7 +256,7 @@ export default function Landing() {
           fontSize: 13,
         }}
       >
-        © 2025 Looki
+        © 2026 Looki
       </footer>
     </div>
   );

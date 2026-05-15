@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button, Form, Input, Alert, Card, Divider } from 'antd';
-import { MailOutlined, LockOutlined } from '@ant-design/icons';
-import { useAuth } from '../auth/AuthContext.js';
-import ThemeToggle from '../components/ThemeToggle.js';
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Button, Form, Input, Alert, Card, Divider } from "antd";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
+import { useAuth } from "../auth/AuthContext.js";
+import ThemeToggle from "../components/ThemeToggle.js";
 
 interface LoginForm {
   email: string;
@@ -21,10 +21,15 @@ export default function Login() {
     setError(null);
     try {
       await login({ email: values.email, password: values.password });
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err: unknown) {
-      const e = err as { response?: { data?: { error?: { message?: string } } } };
-      setError(e.response?.data?.error?.message ?? 'Login failed. Check your credentials.');
+      const e = err as {
+        response?: { data?: { error?: { message?: string } } };
+      };
+      setError(
+        e.response?.data?.error?.message ??
+          "Login failed. Check your credentials."
+      );
     } finally {
       setLoading(false);
     }
@@ -33,33 +38,40 @@ export default function Login() {
   return (
     <div
       style={{
-        minHeight: '100vh',
-        background: 'var(--bg-base)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        minHeight: "100vh",
+        background: "var(--bg-base)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         padding: 24,
-        position: 'relative',
+        position: "relative",
       }}
     >
-      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+      <div style={{ position: "absolute", top: 16, right: 16 }}>
         <ThemeToggle />
       </div>
 
       <Card
         style={{
-          width: '100%',
+          width: "100%",
           maxWidth: 420,
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border)',
+          background: "var(--bg-elevated)",
+          border: "1px solid var(--border)",
           borderRadius: 16,
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--accent-primary)', marginBottom: 4 }}>
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <div
+            style={{
+              fontSize: 28,
+              fontWeight: 700,
+              color: "var(--accent-primary)",
+              marginBottom: 4,
+            }}
+          >
             Looki
           </div>
-          <div style={{ fontSize: 14, color: 'var(--text-secondary)' }}>
+          <div style={{ fontSize: 14, color: "var(--text-secondary)" }}>
             Phone Number Intelligence
           </div>
         </div>
@@ -73,16 +85,22 @@ export default function Login() {
           />
         )}
 
-        <Form<LoginForm> layout="vertical" onFinish={handleSubmit} requiredMark={false}>
+        <Form<LoginForm>
+          layout="vertical"
+          onFinish={handleSubmit}
+          requiredMark={false}
+        >
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: 'Email is required' },
-              { type: 'email', message: 'Enter a valid email' },
+              { required: true, message: "Email is required" },
+              { type: "email", message: "Enter a valid email" },
             ]}
           >
             <Input
-              prefix={<MailOutlined style={{ color: 'var(--text-secondary)' }} />}
+              prefix={
+                <MailOutlined style={{ color: "var(--text-secondary)" }} />
+              }
               placeholder="Email address"
               size="large"
               autoComplete="email"
@@ -91,10 +109,12 @@ export default function Login() {
 
           <Form.Item
             name="password"
-            rules={[{ required: true, message: 'Password is required' }]}
+            rules={[{ required: true, message: "Password is required" }]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: 'var(--text-secondary)' }} />}
+              prefix={
+                <LockOutlined style={{ color: "var(--text-secondary)" }} />
+              }
               placeholder="Password"
               size="large"
               autoComplete="current-password"
@@ -109,9 +129,9 @@ export default function Login() {
               loading={loading}
               block
               style={{
-                background: 'var(--accent-primary)',
-                borderColor: 'var(--accent-primary)',
-                color: '#fff',
+                background: "var(--accent-primary)",
+                borderColor: "var(--accent-primary)",
+                color: "#fff",
                 fontWeight: 600,
                 height: 44,
                 borderRadius: 8,
@@ -122,17 +142,33 @@ export default function Login() {
           </Form.Item>
         </Form>
 
-        <Divider style={{ borderColor: 'var(--border)', margin: '20px 0' }} />
+        <Divider style={{ borderColor: "var(--border)", margin: "20px 0" }} />
 
-        <div style={{ textAlign: 'center', fontSize: 14, color: 'var(--text-secondary)' }}>
-          Don't have an account?{' '}
-          <Link to="/register" style={{ color: 'var(--accent-primary)', fontWeight: 500 }}>
+        <div
+          style={{
+            textAlign: "center",
+            fontSize: 14,
+            color: "var(--text-secondary)",
+          }}
+        >
+          Don't have an account?{" "}
+          <Link
+            to="/register"
+            style={{ color: "var(--accent-primary)", fontWeight: 500 }}
+          >
             Register
           </Link>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--text-secondary)' }}>
-          © 2025 Looki
+        <div
+          style={{
+            textAlign: "center",
+            marginTop: 24,
+            fontSize: 13,
+            color: "var(--text-secondary)",
+          }}
+        >
+          © 2026 Looki / Mohamed Ali
         </div>
       </Card>
     </div>

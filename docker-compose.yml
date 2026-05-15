@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    container_name: looki-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-looki}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-looki}
@@ -15,6 +16,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    container_name: looki-redis
     command: redis-server --appendonly yes
     volumes:
       - redisdata:/data
@@ -28,6 +30,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    image: looki-api:v1
+    container_name: looki-api
     env_file: .env
     environment:
       NODE_ENV: production
@@ -48,6 +52,8 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+    image: looki-web:v1
+    container_name: looki-web
     ports:
       - "80:80"
     depends_on:
@@ -58,6 +64,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
+    image: looki-worker:v1
+    container_name: looki-worker
     env_file: .env
     environment:
       NODE_ENV: production
@@ -73,6 +81,8 @@ services:
     build:
       context: .
       dockerfile: apps/data-loader/Dockerfile
+    image: looki-data-loader:v1
+    container_name: looki-data-loader
     env_file: .env
     environment:
       NODE_ENV: production
@@ -83,6 +93,9 @@ services:
       - loader
 
 volumes:
-  pgdata: {}
-  redisdata: {}
-  jobsdata: {}
+  pgdata:
+    name: looki-postgres-data
+  redisdata:
+    name: looki-redis-data
+  jobsdata:
+    name: looki-jobs-data

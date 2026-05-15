@@ -1,4 +1,5 @@
 # Looki — Phone Number Intelligence Service
+
 ## Implementation Plan
 
 > **Auth correction:** Both the web UI and the REST API use **JWT (Bearer tokens)**. The web UI stores `access_token` and `refresh_token` in `localStorage`. The API expects `Authorization: Bearer <token>`. There are no server-side sessions.
@@ -10,6 +11,7 @@
 **Looki** is a self-hostable web service that accepts a phone number and returns structured intelligence: country, region, line type, formatted representations, and the original carrier allocation.
 
 The service exposes:
+
 1. A versioned REST API (`/api/v1`) for programmatic use.
 2. A React web UI for interactive lookups and account management.
 3. An admin dashboard for usage analytics.
@@ -24,48 +26,51 @@ Everything runs on the operator's own infrastructure via Docker Compose — no e
 ## 2. Technology Stack
 
 ### Backend
-| Layer | Choice | Reason |
-|---|---|---|
-| Language | TypeScript on Node.js 20 LTS | Type safety, modern JS ecosystem |
-| Framework | Express 4.x | Stable, well-known, minimal overhead |
-| Database | PostgreSQL 16 | Relational range-based queries, referential integrity |
-| Cache / Rate-limit store | Redis 7 | Sliding-window rate limiting, response caching |
-| Job queue | BullMQ (on Redis) | Async bulk job processing |
-| Phone parsing | libphonenumber-js | Industry-standard ITU country code data |
-| Auth | JWT (jsonwebtoken) | Access + refresh token pair, stored in localStorage |
-| Password hashing | argon2id (argon2 npm) | OWASP-recommended, default parameters |
-| Migrations | node-pg-migrate | Plain SQL, no ORM lock-in |
-| Query layer | pg driver + repository pattern | No ORM, explicit tunable SQL |
-| Logging | Pino | Fast structured logging; pretty in dev, JSON in prod |
-| Validation | Zod | Schema-first, every endpoint body/query/params |
-| API docs | OpenAPI 3.1 + Swagger UI | Served at `/docs` and `/openapi.json` |
-| Metrics | prom-client | Prometheus endpoint at `/metrics` |
-| Scheduler | node-cron | Monthly data reload inside API container |
-| ULID | ulidx | Collision-resistant sortable IDs |
+
+| Layer                    | Choice                         | Reason                                                |
+| ------------------------ | ------------------------------ | ----------------------------------------------------- |
+| Language                 | TypeScript on Node.js 20 LTS   | Type safety, modern JS ecosystem                      |
+| Framework                | Express 4.x                    | Stable, well-known, minimal overhead                  |
+| Database                 | PostgreSQL 16                  | Relational range-based queries, referential integrity |
+| Cache / Rate-limit store | Redis 7                        | Sliding-window rate limiting, response caching        |
+| Job queue                | BullMQ (on Redis)              | Async bulk job processing                             |
+| Phone parsing            | libphonenumber-js              | Industry-standard ITU country code data               |
+| Auth                     | JWT (jsonwebtoken)             | Access + refresh token pair, stored in localStorage   |
+| Password hashing         | argon2id (argon2 npm)          | OWASP-recommended, default parameters                 |
+| Migrations               | node-pg-migrate                | Plain SQL, no ORM lock-in                             |
+| Query layer              | pg driver + repository pattern | No ORM, explicit tunable SQL                          |
+| Logging                  | Pino                           | Fast structured logging; pretty in dev, JSON in prod  |
+| Validation               | Zod                            | Schema-first, every endpoint body/query/params        |
+| API docs                 | OpenAPI 3.1 + Swagger UI       | Served at `/docs` and `/openapi.json`                 |
+| Metrics                  | prom-client                    | Prometheus endpoint at `/metrics`                     |
+| Scheduler                | node-cron                      | Monthly data reload inside API container              |
+| ULID                     | ulidx                          | Collision-resistant sortable IDs                      |
 
 ### Frontend
-| Layer | Choice |
-|---|---|
-| Framework | React 18 (functional components only) |
-| Language | TypeScript ~5.6 (strict, no `any` in feature code) |
-| Build tool | Vite 5.x |
-| Routing | React Router 6.x |
-| Component library | Ant Design 5 |
-| Icons | @ant-design/icons only |
-| Utility CSS | Tailwind CSS 4 (layout/spacing only — colors via CSS variables) |
-| Charts | ECharts 5 via echarts-for-react |
-| Server state | TanStack React Query 5 |
-| HTTP client | Axios (JWT interceptors) |
-| Dates | dayjs |
-| Export | xlsx (SheetJS) |
+
+| Layer             | Choice                                                          |
+| ----------------- | --------------------------------------------------------------- |
+| Framework         | React 18 (functional components only)                           |
+| Language          | TypeScript ~5.6 (strict, no `any` in feature code)              |
+| Build tool        | Vite 5.x                                                        |
+| Routing           | React Router 6.x                                                |
+| Component library | Ant Design 5                                                    |
+| Icons             | @ant-design/icons only                                          |
+| Utility CSS       | Tailwind CSS 4 (layout/spacing only — colors via CSS variables) |
+| Charts            | ECharts 5 via echarts-for-react                                 |
+| Server state      | TanStack React Query 5                                          |
+| HTTP client       | Axios (JWT interceptors)                                        |
+| Dates             | dayjs                                                           |
+| Export            | xlsx (SheetJS)                                                  |
 
 ### Infrastructure
-| Component | Details |
-|---|---|
-| Docker Compose (production) | `app` container (API + frontend) + `postgres` container |
-| Docker Compose (full) | Adds `redis` container + optional `worker` + `data-loader` |
-| Reverse proxy | nginx:alpine inside app container, proxies `/api` to Node |
-| Process manager | Node directly — no PM2 inside Docker |
+
+| Component                   | Details                                                    |
+| --------------------------- | ---------------------------------------------------------- |
+| Docker Compose (production) | `app` container (API + frontend) + `postgres` container    |
+| Docker Compose (full)       | Adds `redis` container + optional `worker` + `data-loader` |
+| Reverse proxy               | nginx:alpine inside app container, proxies `/api` to Node  |
+| Process manager             | Node directly — no PM2 inside Docker                       |
 
 > **Current baseline:** Two containers — `app` (Node.js API + nginx-served frontend) and `postgres`. Redis is added as a third container for caching and rate limiting. The full production compose adds `redis`, `worker`, and `data-loader` services.
 
@@ -236,6 +241,7 @@ looki/
 ## 4. Authentication Design (JWT)
 
 ### Token Strategy
+
 - **Access token:** Short-lived (15 min), signed HS256, payload `{ sub: userId, role, jti }`.
 - **Refresh token:** Long-lived (7 days), stored in the DB (`refresh_tokens` table) for revocation. Payload `{ sub: userId, jti }`.
 - **Storage:** Both tokens in `localStorage` under keys `looki_access_token` and `looki_refresh_token`.
@@ -243,18 +249,20 @@ looki/
 
 ### Auth Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/v1/auth/register` | Create user, return `{ access_token, refresh_token, user }` |
-| POST | `/api/v1/auth/login` | Verify credentials, return tokens |
-| POST | `/api/v1/auth/refresh` | Body: `{ refresh_token }` → new access token |
-| POST | `/api/v1/auth/logout` | Body: `{ refresh_token }` → revoke refresh token in DB |
+| Method | Path                    | Description                                                 |
+| ------ | ----------------------- | ----------------------------------------------------------- |
+| POST   | `/api/v1/auth/register` | Create user, return `{ access_token, refresh_token, user }` |
+| POST   | `/api/v1/auth/login`    | Verify credentials, return tokens                           |
+| POST   | `/api/v1/auth/refresh`  | Body: `{ refresh_token }` → new access token                |
+| POST   | `/api/v1/auth/logout`   | Body: `{ refresh_token }` → revoke refresh token in DB      |
 
 ### Axios Interceptors (frontend)
 
 ```ts
 // Request: attach access token
-config.headers.Authorization = `Bearer ${localStorage.getItem('looki_access_token')}`
+config.headers.Authorization = `Bearer ${localStorage.getItem(
+  "looki_access_token"
+)}`;
 
 // Response: on 401, try /auth/refresh; if that fails, redirect to /login
 ```
@@ -274,6 +282,7 @@ requireAdmin   — checks req.user.role === 'admin'
 All tables in `public` schema. All timestamps `TIMESTAMPTZ`. Primary keys are ULIDs as `TEXT(26)`.
 
 ### `users`
+
 ```sql
 id            TEXT PRIMARY KEY
 email         CITEXT UNIQUE NOT NULL
@@ -283,6 +292,7 @@ created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 ```
 
 ### `refresh_tokens`
+
 ```sql
 id         TEXT PRIMARY KEY                   -- ULID = jti
 user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
@@ -290,9 +300,11 @@ revoked_at TIMESTAMPTZ
 expires_at TIMESTAMPTZ NOT NULL
 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 ```
+
 Index: `(user_id)` where `revoked_at IS NULL AND expires_at > NOW()`.
 
 ### `api_keys`
+
 ```sql
 id           TEXT PRIMARY KEY
 user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE
@@ -304,17 +316,21 @@ revoked_at   TIMESTAMPTZ
 last_used_at TIMESTAMPTZ
 created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 ```
+
 Index: `(key_hash) WHERE revoked_at IS NULL`.
 
 ### `countries`
+
 ```sql
 code         CHAR(2) PRIMARY KEY              -- ISO 3166-1 alpha-2
 name         TEXT NOT NULL
 calling_code TEXT NOT NULL                   -- '1', '44', '61'
 ```
+
 Seeded from static JSON in migration.
 
 ### `prefix_allocations`
+
 ```sql
 id            BIGSERIAL PRIMARY KEY
 country_code  CHAR(2) NOT NULL REFERENCES countries(code)
@@ -327,11 +343,14 @@ source        TEXT NOT NULL                 -- 'NANPA' | 'OFCOM' | 'ACMA'
 allocated_at  DATE
 loaded_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 ```
+
 Indexes:
+
 - `(country_code, prefix_length DESC, prefix)` — longest-prefix-match scan
 - `UNIQUE (country_code, prefix)`
 
 **Longest-prefix-match query (the heart of the service):**
+
 ```sql
 SELECT carrier_name, carrier_type, region, source, allocated_at
 FROM prefix_allocations
@@ -340,9 +359,11 @@ WHERE country_code = $1
 ORDER BY prefix_length DESC
 LIMIT 1;
 ```
+
 `$2` is the national significant number as a digit string.
 
 ### `usage_log`
+
 ```sql
 id           TEXT PRIMARY KEY               -- ULID = lookup_id
 api_key_id   TEXT REFERENCES api_keys(id) ON DELETE SET NULL
@@ -358,10 +379,12 @@ latency_ms   INTEGER NOT NULL
 request_ip   INET
 created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 ```
+
 Partitioned monthly by `created_at`. 90-day retention scheduled task.
 Indexes: `(api_key_id, created_at DESC)`, `(created_at DESC)`.
 
 ### `data_loads`
+
 ```sql
 id            TEXT PRIMARY KEY
 source        TEXT NOT NULL
@@ -374,6 +397,7 @@ finished_at   TIMESTAMPTZ
 ```
 
 ### `jobs`
+
 ```sql
 id            TEXT PRIMARY KEY            -- = BullMQ job id
 user_id       TEXT NOT NULL REFERENCES users(id)
@@ -396,45 +420,45 @@ All endpoints prefixed `/api/v1`. All responses JSON.
 
 ### Lookup (requires API key — `Authorization: Bearer pi_live_...`)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/lookup?number=<E164>&country=<ISO2>` | Single number lookup |
-| POST | `/lookup/bulk` | Synchronous bulk — max 1000, returns array |
-| POST | `/lookup/jobs` | Async job — up to 1,000,000 numbers or CSV upload |
-| GET | `/lookup/jobs/:job_id` | Job status + progress |
-| GET | `/lookup/jobs/:job_id/result` | CSV stream when complete |
+| Method | Path                                   | Description                                       |
+| ------ | -------------------------------------- | ------------------------------------------------- |
+| GET    | `/lookup?number=<E164>&country=<ISO2>` | Single number lookup                              |
+| POST   | `/lookup/bulk`                         | Synchronous bulk — max 1000, returns array        |
+| POST   | `/lookup/jobs`                         | Async job — up to 1,000,000 numbers or CSV upload |
+| GET    | `/lookup/jobs/:job_id`                 | Job status + progress                             |
+| GET    | `/lookup/jobs/:job_id/result`          | CSV stream when complete                          |
 
 ### Account Management (requires JWT — `Authorization: Bearer <jwt>`)
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/auth/register` | Create account → tokens |
-| POST | `/auth/login` | Login → tokens |
-| POST | `/auth/refresh` | Refresh access token |
-| POST | `/auth/logout` | Revoke refresh token |
-| GET | `/me` | Current user |
-| GET | `/me/keys` | List API keys |
-| POST | `/me/keys` | Create API key (plaintext returned once) |
-| DELETE | `/me/keys/:key_id` | Revoke API key |
-| GET | `/me/usage?from=YYYY-MM-DD&to=YYYY-MM-DD` | Daily usage counts |
+| Method | Path                                      | Description                              |
+| ------ | ----------------------------------------- | ---------------------------------------- |
+| POST   | `/auth/register`                          | Create account → tokens                  |
+| POST   | `/auth/login`                             | Login → tokens                           |
+| POST   | `/auth/refresh`                           | Refresh access token                     |
+| POST   | `/auth/logout`                            | Revoke refresh token                     |
+| GET    | `/me`                                     | Current user                             |
+| GET    | `/me/keys`                                | List API keys                            |
+| POST   | `/me/keys`                                | Create API key (plaintext returned once) |
+| DELETE | `/me/keys/:key_id`                        | Revoke API key                           |
+| GET    | `/me/usage?from=YYYY-MM-DD&to=YYYY-MM-DD` | Daily usage counts                       |
 
 ### Admin (requires JWT + admin role)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/admin/stats` | System stats, cache hit ratio, p50/p95/p99 latency |
-| GET | `/admin/users` | Paginated user list |
-| POST | `/admin/data/reload` | Trigger prefix data reload + flush cache |
+| Method | Path                 | Description                                        |
+| ------ | -------------------- | -------------------------------------------------- |
+| GET    | `/admin/stats`       | System stats, cache hit ratio, p50/p95/p99 latency |
+| GET    | `/admin/users`       | Paginated user list                                |
+| POST   | `/admin/data/reload` | Trigger prefix data reload + flush cache           |
 
 ### Meta (public)
 
-| Method | Path | Description |
-|---|---|---|
-| GET | `/health` | `{ "status": "ok" }` |
-| GET | `/ready` | Verifies Postgres + Redis reachable |
-| GET | `/metrics` | Prometheus text format |
-| GET | `/docs` | Swagger UI |
-| GET | `/openapi.json` | Raw OpenAPI 3.1 spec |
+| Method | Path            | Description                         |
+| ------ | --------------- | ----------------------------------- |
+| GET    | `/health`       | `{ "status": "ok" }`                |
+| GET    | `/ready`        | Verifies Postgres + Redis reachable |
+| GET    | `/metrics`      | Prometheus text format              |
+| GET    | `/docs`         | Swagger UI                          |
+| GET    | `/openapi.json` | Raw OpenAPI 3.1 spec                |
 
 ### Lookup Response Shape
 
@@ -475,11 +499,11 @@ All endpoints prefixed `/api/v1`. All responses JSON.
 
 Sliding-window counters in Redis. Per API key:
 
-| Window | Free tier limit |
-|---|---|
-| Per minute | 60 requests |
-| Per day | 1,000 requests |
-| Per month | 10,000 requests |
+| Window     | Free tier limit |
+| ---------- | --------------- |
+| Per minute | 60 requests     |
+| Per day    | 1,000 requests  |
+| Per month  | 10,000 requests |
 
 - Bulk: counts as `numbers.length` against per-minute; hard cap 1000/request.
 - Job: counts as 1 per-minute; consumes `numbers.length` per-day/per-month on completion.
@@ -506,11 +530,13 @@ Script: `npm run data:load` in `apps/data-loader/`.
 Also scheduled inside the API container via `node-cron` to run monthly at 03:00 UTC on the 2nd.
 
 **Data sources for v1:**
+
 1. **NANPA** — `nationalnanpa.com` public CSV, covers `+1`. License: public domain.
 2. **Ofcom** — `ofcom.org.uk` numbering plan CSV, covers `+44`. License: Open Government Licence.
 3. **ACMA** (stub) — Australian Communications and Media Authority, covers `+61`. Proves the loader is generic.
 
 **Pipeline steps:**
+
 1. Download source files to `data/raw/` volume.
 2. Validate row counts and schema sanity (reject < 1000 rows, missing required columns).
 3. Load into `prefix_allocations_staging` table.
@@ -530,7 +556,9 @@ export interface PortabilityProvider {
 }
 
 export class NullPortabilityProvider implements PortabilityProvider {
-  async lookup(_e164: string) { return null; }
+  async lookup(_e164: string) {
+    return null;
+  }
 }
 ```
 
@@ -569,23 +597,27 @@ The lookup service calls `provider.lookup(e164)` and merges the result if non-nu
 ```ts
 new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 5 * 60 * 1000, retry: 1, refetchOnWindowFocus: false }
-  }
-})
+    queries: {
+      staleTime: 5 * 60 * 1000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 ```
 
 ### Routes
 
-| Path | Component | Auth |
-|---|---|---|
-| `/` | `Landing.tsx` | Public (demo: 5/hour anonymous) |
-| `/login` | `Login.tsx` | Public |
-| `/register` | `Register.tsx` | Public |
-| `/lookup` | `LookupPage.tsx` | JWT required |
-| `/dashboard` | `DashboardPage.tsx` | JWT required |
-| `/keys` | `KeysPage.tsx` | JWT required |
-| `/docs` | `Docs.tsx` | Public |
-| `/admin` | `AdminPage.tsx` | JWT + admin role |
+| Path         | Component           | Auth                            |
+| ------------ | ------------------- | ------------------------------- |
+| `/`          | `Landing.tsx`       | Public (demo: 5/hour anonymous) |
+| `/login`     | `Login.tsx`         | Public                          |
+| `/register`  | `Register.tsx`      | Public                          |
+| `/lookup`    | `LookupPage.tsx`    | JWT required                    |
+| `/dashboard` | `DashboardPage.tsx` | JWT required                    |
+| `/keys`      | `KeysPage.tsx`      | JWT required                    |
+| `/docs`      | `Docs.tsx`          | Public                          |
+| `/admin`     | `AdminPage.tsx`     | JWT + admin role                |
 
 ### App Shell (AppLayout.tsx)
 
@@ -610,47 +642,52 @@ new QueryClient({
 Follows the Enterprise Dashboard Design System:
 
 **Color layers:**
+
 ```
 Brand Anchors → Semantic Tokens → CSS Variables (html[data-theme])
 ```
 
 **Dark theme (default):**
+
 ```css
 --bg-base: #202020;
---bg-container: #2A2A2A;
+--bg-container: #2a2a2a;
 --bg-elevated: #383838;
 --bg-hover: #424242;
---border: #4A4A4A;
---text-primary: #F5F5F5;
---text-secondary: #CCCCCC;
---accent-primary: #FFD633;     /* brand yellow — brighter for dark */
---status-success: #5FE670;
---status-warning: #FB923C;     /* orange — never yellow for warnings */
---status-danger: #FF8A8A;
---status-info: #4DF0FF;
+--border: #4a4a4a;
+--text-primary: #f5f5f5;
+--text-secondary: #cccccc;
+--accent-primary: #ffd633; /* brand yellow — brighter for dark */
+--status-success: #5fe670;
+--status-warning: #fb923c; /* orange — never yellow for warnings */
+--status-danger: #ff8a8a;
+--status-info: #4df0ff;
 ```
 
 **Light theme:**
+
 ```css
---bg-base: #F4F6FA;
---bg-container: #EEF2F7;
---bg-elevated: #FFFFFF;
---border: #CBD5E1;
---text-primary: #0A0046;
---accent-primary: #FFCB05;
---status-success: #42B52E;
---status-warning: #F97316;
---status-danger: #DC2626;
---status-info: #01B4D2;
+--bg-base: #f4f6fa;
+--bg-container: #eef2f7;
+--bg-elevated: #ffffff;
+--border: #cbd5e1;
+--text-primary: #0a0046;
+--accent-primary: #ffcb05;
+--status-success: #42b52e;
+--status-warning: #f97316;
+--status-danger: #dc2626;
+--status-info: #01b4d2;
 ```
 
 **Rules:**
+
 - All colors via CSS variables — never raw hex in feature components.
 - Inline `style` props on Ant Design components.
 - CSS classes only for global patterns in `index.css`.
 - Warning is ALWAYS orange — yellow reserved for brand only.
 
 **Typography:**
+
 ```
 Font: system font stack (-apple-system, Segoe UI, Roboto, …)
 Base: 14px / 1.5714
@@ -667,50 +704,57 @@ Card headers: 16px, weight 600
 ### Key Page Designs
 
 #### Landing (`/`)
+
 - Marketing copy visible without login.
 - "Try it" lookup form: anonymous, limited to 5/hour via Redis IP counter.
 - Result displayed inline as a card.
 - CTA to register for full access.
 
 #### Lookup (`/lookup`) — logged in
+
 - Single number input form.
 - Result card showing all fields from the API response.
 - Tabs below result: **Single** | **Bulk**
   - Bulk tab: CSV upload + manual textarea. Shows job status polling.
 
 #### Dashboard (`/dashboard`)
+
 - KPI grid: total lookups (30d), cache hit %, unique numbers, API calls today.
 - `UsageChart`: ECharts line chart, daily counts past 30 days.
 - `ApiKeyList`: table of keys with name, prefix, last used, tier, created date.
 
 #### Keys (`/keys`)
+
 - Table: key name, prefix (`pi_live_XXXXXXXX`), tier, last used, created.
 - Create button → modal form → on success show plaintext key once in modal with copy button.
 - Revoke: Popconfirm inline.
 
 #### Admin (`/admin`)
+
 - `StatsGrid`: KPI cards for total users, total lookups, cache hit ratio, queue depth.
 - Latency chart: p50/p95/p99 histogram for last 24h.
 - `UsersTable`: paginated, sortable. Edit role + status. Delete with Popconfirm.
 - "Reload Data" button → POST `/admin/data/reload` with confirmation.
 
 #### Login (`/login`)
+
 ```
 Centered card (max-width: 420px)
 [Looki logo]
 [Email input]
 [Password input]
 [Sign In button] — brand yellow bg, black text
-Footer: "© 2025 Looki"
+Footer: "© 2026 Looki  / Mohamed Ali"
 ```
 
 ### ECharts Color Palette
 
 ```ts
 // Dark
-['#FFD633', '#FB923C', '#34D399', '#A78BFA', '#F87171', '#22D3EE', '#F472B6']
-// Light
-['#FFCB05', '#F97316', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4', '#EC4899']
+["#FFD633", "#FB923C", "#34D399", "#A78BFA", "#F87171", "#22D3EE", "#F472B6"][
+  // Light
+  ("#FFCB05", "#F97316", "#10B981", "#8B5CF6", "#EF4444", "#06B6D4", "#EC4899")
+];
 ```
 
 ---
@@ -724,19 +768,19 @@ services:
   postgres:
     image: postgres:16-alpine
     volumes: [pgdata:/var/lib/postgresql/data]
-    healthcheck: {test: pg_isready, interval: 5s, retries: 10}
+    healthcheck: { test: pg_isready, interval: 5s, retries: 10 }
 
   redis:
     image: redis:7-alpine
     command: redis-server --appendonly yes
     volumes: [redisdata:/data]
-    healthcheck: {test: redis-cli ping, interval: 5s}
+    healthcheck: { test: redis-cli ping, interval: 5s }
 
   api:
     build: apps/api
     depends_on:
-      postgres: {condition: service_healthy}
-      redis: {condition: service_healthy}
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
     command: node dist/index.js
     ports: ["3000:3000"]
 
@@ -754,10 +798,10 @@ services:
     build: apps/data-loader
     command: node dist/index.js
     depends_on:
-      postgres: {condition: service_healthy}
-    profiles: ["loader"]   # only runs when explicitly invoked
+      postgres: { condition: service_healthy }
+    profiles: ["loader"] # only runs when explicitly invoked
 
-volumes: {pgdata: {}, redisdata: {}}
+volumes: { pgdata: {}, redisdata: {} }
 ```
 
 ### `docker-compose.minimal.yml` (app + postgres — quick start)
@@ -830,14 +874,14 @@ DATA_RAW_PATH=/data/raw
 
 ## 14. Performance Targets
 
-| Metric | Target |
-|---|---|
-| p50 latency (cache hit) | < 10 ms server-side |
-| p50 latency (cache miss) | < 50 ms server-side |
-| p99 latency | < 200 ms |
-| Throughput (single instance, warm cache) | ≥ 500 req/s on 2 vCPU |
-| Bulk 100 numbers (warm cache) | < 2 seconds |
-| Job 50,000 numbers | Completes successfully, CSV downloadable |
+| Metric                                   | Target                                   |
+| ---------------------------------------- | ---------------------------------------- |
+| p50 latency (cache hit)                  | < 10 ms server-side                      |
+| p50 latency (cache miss)                 | < 50 ms server-side                      |
+| p99 latency                              | < 200 ms                                 |
+| Throughput (single instance, warm cache) | ≥ 500 req/s on 2 vCPU                    |
+| Bulk 100 numbers (warm cache)            | < 2 seconds                              |
+| Job 50,000 numbers                       | Completes successfully, CSV downloadable |
 
 Index tuning: if `LIKE prefix || '%'` on the full NANPA dataset (~400k rows) misses targets, convert to `int8range` prefix ranges — document the decision in `docs/architecture.md`.
 
@@ -857,11 +901,11 @@ Index tuning: if `LIKE prefix || '%'` on the full NANPA dataset (~400k rows) mis
 
 ## 16. Testing Strategy
 
-| Layer | Tools | Coverage target |
-|---|---|---|
-| Unit | Vitest | ≥ 80% lines for `lookup/` and `auth/` |
-| Integration | Vitest + Supertest | Every endpoint, happy path + ≥1 error path |
-| E2E smoke | docker compose up + curl/fetch | Boots full stack, runs 5 lookups, checks health |
+| Layer       | Tools                          | Coverage target                                 |
+| ----------- | ------------------------------ | ----------------------------------------------- |
+| Unit        | Vitest                         | ≥ 80% lines for `lookup/` and `auth/`           |
+| Integration | Vitest + Supertest             | Every endpoint, happy path + ≥1 error path      |
+| E2E smoke   | docker compose up + curl/fetch | Boots full stack, runs 5 lookups, checks health |
 
 **Unit test scope:** parser, carrier repo (real test Postgres), Redis cache, rate limiter, password hashing, API key generation/verification, JWT sign/verify.
 
@@ -927,4 +971,4 @@ The implementation is complete when **all** hold:
 
 ---
 
-*End of plan.*
+_End of plan._

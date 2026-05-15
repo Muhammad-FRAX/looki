@@ -1,6 +1,7 @@
 services:
   prometheus:
     image: prom/prometheus:v2.52.0
+    container_name: looki-prometheus
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheusdata:/prometheus
@@ -13,6 +14,7 @@ services:
 
   grafana:
     image: grafana/grafana:11.0.0
+    container_name: looki-grafana
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_AUTH_ANONYMOUS_ENABLED: "true"
@@ -28,5 +30,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  prometheusdata: {}
-  grafanadata: {}
+  prometheusdata:
+    name: looki-prometheus-data
+  grafanadata:
+    name: looki-grafana-data
