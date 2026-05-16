@@ -256,7 +256,7 @@ export default function Landing() {
           fontSize: 13,
         }}
       >
-        © 2026 Looki
+        © 2026 Looki / Mohamed Ali
       </footer>
     </div>
   );
